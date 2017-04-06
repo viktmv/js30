@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+    const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+    let areas = []
+
+    fetch(endpoint)
+        .then(response => response.json())
+        .then(data => areas.push(...data))
+
+    let input = document.querySelector('.search')
+    let suggestions = document.querySelector('.suggestions')
+
+    function findMatches(wordToMatch, cities) {
+        return cities.filter(place => {
+            let regExp = new RegExp(wordToMatch, 'gi')
+            return place.city.match(regExp) || place.state.match(regExp)
+        })
+    }
+    function displayValue() {
+        let matches = findMatches(this.value, areas)
+        let html = matches.map(area => {
+            let regexp = new RegExp(this.value, 'gi')
+            let city = area.city.replace(regexp, `<span class="hl">${this.value}</span>`)
+            let state = area.state.replace(regexp, `<span class="hl">${this.value}</span>`)
+            return `
+                <li>
+                    <span class="name">${city}, ${state}</span>
+                    <span class="population">${numberWithCommas(area.population)}</span>
+                </li>
+            `
+        }).join('')
+        return !this.value
+        ? suggestions.innerHTML = '<li>Filter for a city</li><li>or a state</li>'
+        : suggestions.innerHTML = html
+    }
+
+    function numberWithCommas(x) {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    input.addEventListener('change', displayValue)
+    input.addEventListener('keyup', displayValue)
+</script>
+  </body>
+</html>
